@@ -87,9 +87,10 @@ export function CookiesPage() {
     setAdding(true);
     try {
       const res = await api.addCookie(value);
-      showSuccess(
-        `Cookie tersimpan: ${res.email || "akun"} · balance ${res.balance.toLocaleString()}`
-      );
+      showSuccess(t("Cookie saved: {account} · balance {balance}", {
+        account: res.email || t("account"),
+        balance: res.balance.toLocaleString(),
+      }));
       setRawCookie("");
       await reload();
     } catch (err) {
@@ -103,10 +104,10 @@ export function CookiesPage() {
     setRefreshing(true);
     try {
       const res = await api.refreshCookieProfiles();
-      showSuccess(`Refresh selesai: ${res.ok}/${res.checked} berhasil`);
+      showSuccess(t("Refresh complete: {ok}/{checked} succeeded", res));
       await reload();
     } catch (err) {
-      showError(`Refresh gagal: ${(err as Error).message}`);
+      showError(`${t("Refresh failed")}: ${(err as Error).message}`);
     } finally {
       setRefreshing(false);
     }
@@ -122,12 +123,15 @@ export function CookiesPage() {
   };
 
   const onDelete = async (cookie: Cookie) => {
-    if (!confirm(`Hapus cookie #${cookie.id} (${cookie.email || "no email"})?`)) {
+    if (!confirm(t("Delete cookie #{id} ({email})?", {
+      id: cookie.id,
+      email: cookie.email || t("no email"),
+    }))) {
       return;
     }
     try {
       await api.deleteCookie(cookie.id);
-      showSuccess(`Cookie #${cookie.id} dihapus.`);
+      showSuccess(t("Cookie #{id} deleted.", { id: cookie.id }));
       await reload();
     } catch (err) {
       showError((err as Error).message);
@@ -143,15 +147,16 @@ export function CookiesPage() {
     if (!editing) return;
     const value = editValue.trim();
     if (!value) {
-      showError("Paste cookie baru dulu.");
+      showError(t("Paste the new cookie first."));
       return;
     }
     setEditSaving(true);
     try {
       const res = await api.updateCookie(editing.id, value);
-      showSuccess(
-        `Cookie #${editing.id} diperbarui · balance ${res.balance.toLocaleString()}`
-      );
+      showSuccess(t("Cookie #{id} updated · balance {balance}", {
+        id: editing.id,
+        balance: res.balance.toLocaleString(),
+      }));
       setEditing(null);
       setEditValue("");
       await reload();

@@ -113,7 +113,10 @@ export function GenerateImagePage() {
         res.provider.saved_files.length > 0
       ) {
         showSuccess(
-          t("Saved {count} file", { count: res.provider.saved_files.length })
+          t("Saved {count} file → {path}", {
+            count: res.provider.saved_files.length,
+            path: res.provider.saved_files[0],
+          })
         );
       } else {
         showSuccess(t("Generated {count} image", { count: res.data.length }));

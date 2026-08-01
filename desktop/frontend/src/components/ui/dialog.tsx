@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 // Minimal shadcn-style dialog without Radix to avoid extra deps. Uses native
 // <dialog> for backdrop + ESC handling.
@@ -20,6 +21,7 @@ export function Dialog({
   className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const el = ref.current;
@@ -57,7 +59,7 @@ export function Dialog({
           <button
             onClick={onClose}
             className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-            aria-label="Close"
+            aria-label={t("Close")}
           >
             <X className="h-4 w-4" />
           </button>

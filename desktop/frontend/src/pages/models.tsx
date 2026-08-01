@@ -69,9 +69,11 @@ export function ModelsPage() {
     setSyncing(true);
     try {
       const res = await api.syncImageModels();
-      showSuccess(
-        `Synced · ${res.Total} models (+${res.Added} new, ${res.Updated} updated)`
-      );
+      showSuccess(t("Synced · {total} models (+{added} new, {updated} updated)", {
+        total: res.Total,
+        added: res.Added,
+        updated: res.Updated,
+      }));
       await reload();
     } catch (err) {
       showError((err as Error).message);
@@ -81,7 +83,7 @@ export function ModelsPage() {
   };
 
   const onDelete = async (m: ImageModel) => {
-    if (!confirm(`Delete "${m.name}"?`)) return;
+    if (!confirm(t("Delete model {name}?", { name: m.name }))) return;
     try {
       await api.deleteImageModel(m.id);
       await reload();

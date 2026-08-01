@@ -65,7 +65,7 @@ export function ImageDropzone({
     async (file: File) => {
       const ext = extractExt(file.name);
       if (!ACCEPTED_EXTS.includes(ext)) {
-        showError(`File harus jpg/png/webp (got ${ext}).`);
+        showError(t("File must be jpg/png/webp (got {ext}).", { ext }));
         return;
       }
       console.log("[dropzone] uploading:", {
@@ -93,7 +93,7 @@ export function ImageDropzone({
         setUploading(false);
       }
     },
-    [onChange, showError]
+    [onChange, showError, t]
   );
 
   const onSubmitURL = () => {
@@ -205,7 +205,7 @@ export function ImageDropzone({
         {uploading ? t("Uploading…") : t("Drag image here")}
       </p>
       <p className="text-[10px] text-muted-foreground">
-        jpg / png / webp, max 1 file
+        {t("jpg / png / webp, max 1 file")}
       </p>
       <div className="flex items-center gap-2 pt-1">
         <Button
