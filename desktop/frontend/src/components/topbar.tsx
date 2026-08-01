@@ -1,5 +1,6 @@
 import { Moon, Sun, Monitor } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
+import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const OPTIONS = [
@@ -18,6 +19,7 @@ export function Topbar({
   rightSlot?: React.ReactNode;
 }) {
   const { theme, setTheme } = useTheme();
+  const { t } = useTranslation();
   return (
     <header className="flex items-center justify-between gap-3 border-b border-border bg-background/70 px-6 py-3 backdrop-blur">
       <h1 className="text-base font-semibold tracking-tight">{title}</h1>
@@ -34,7 +36,7 @@ export function Topbar({
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
               )}
-              aria-label={`${label} theme`}
+              aria-label={t(`${label} theme`)}
             >
               <Icon className="h-3.5 w-3.5" />
             </button>

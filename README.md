@@ -135,6 +135,12 @@ POST /v1/images/generations
 POST /v1/videos/generations
 ```
 
+## Interface language
+
+LeoStudio uses English by default. To use Simplified Chinese, open **Settings**
+from the sidebar, choose **简体中文** under **Language**, and the interface updates
+immediately. Your choice is saved locally and is restored at the next launch.
+
 ## Cookie setup
 
 1. Get the ExLeo browser extension from the [WhatsApp channel](https://whatsapp.com/channel/0029VakVntuKgsNz5QgqU30C).

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 // Each entry maps a nav id to the page rendered in App's switcher.
 // IDs are stable so persistence and deep-links stay valid as the UI evolves.
@@ -72,6 +73,13 @@ export function Sidebar({
   onToggleCollapsed: () => void;
   onAbout: () => void;
 }) {
+  const { t } = useTranslation();
+  const groups = GROUPS.map((group) => ({
+    ...group,
+    heading: t(group.heading),
+    items: group.items.map((item) => ({ ...item, label: t(item.label) })),
+  }));
+  const settingsItem = { ...SETTINGS_ITEM, label: t(SETTINGS_ITEM.label) };
   return (
     <aside
       className={cn(
@@ -82,7 +90,7 @@ export function Sidebar({
       <Brand collapsed={collapsed} onToggleCollapsed={onToggleCollapsed} />
 
       <div className="flex-1 overflow-y-auto py-2">
-        {GROUPS.map((group) => (
+        {groups.map((group) => (
           <NavGroup
             key={group.heading}
             heading={group.heading}
@@ -96,21 +104,21 @@ export function Sidebar({
 
       <div className="space-y-1 border-t border-sidebar-border p-2">
         <NavButton
-          item={SETTINGS_ITEM}
+          item={settingsItem}
           isActive={active === "settings"}
           onClick={() => onChange("settings")}
           collapsed={collapsed}
         />
         <button
           onClick={onAbout}
-          title={collapsed ? "About" : undefined}
+          title={collapsed ? t("About") : undefined}
           className={cn(
             "flex h-9 w-full items-center rounded-md text-xs text-muted-foreground transition hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
             collapsed ? "justify-center px-0" : "gap-3 px-3"
           )}
         >
           <Info className="h-4 w-4 shrink-0" />
-          {!collapsed && <span>About</span>}
+          {!collapsed && <span>{t("About")}</span>}
         </button>
       </div>
     </aside>
@@ -124,6 +132,7 @@ function Brand({
   collapsed: boolean;
   onToggleCollapsed: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className={cn(
@@ -145,7 +154,7 @@ function Brand({
         <button
           onClick={onToggleCollapsed}
           className="rounded-md p-1.5 text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-          aria-label="Collapse sidebar"
+          aria-label={t("Collapse sidebar")}
         >
           <PanelLeftClose className="h-4 w-4" />
         </button>
@@ -154,7 +163,7 @@ function Brand({
         <button
           onClick={onToggleCollapsed}
           className="absolute left-12 top-3 rounded-md bg-sidebar p-1.5 text-muted-foreground shadow ring-1 ring-sidebar-border hover:text-foreground"
-          aria-label="Expand sidebar"
+          aria-label={t("Expand sidebar")}
         >
           <PanelLeftOpen className="h-4 w-4" />
         </button>

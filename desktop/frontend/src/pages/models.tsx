@@ -15,10 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 import { api, type ImageModel, type VideoModel } from "@/lib/api";
 
 export function ModelsPage() {
   const { showSuccess, showError } = useToast();
+  const { t } = useTranslation();
 
   const [imageModels, setImageModels] = useState<ImageModel[] | null>(null);
   const [videoModels, setVideoModels] = useState<VideoModel[] | null>(null);
@@ -36,7 +38,7 @@ export function ModelsPage() {
       setImageModels(img);
       setVideoModels(vid);
     } catch (err) {
-      showError(`Load failed: ${(err as Error).message}`);
+      showError(`${t("Load failed")}: ${(err as Error).message}`);
     }
   }, [showError]);
 
@@ -46,13 +48,13 @@ export function ModelsPage() {
 
   const onAddModel = async () => {
     if (!modelId.trim()) {
-      showError("Model UUID required");
+      showError(t("Model UUID required"));
       return;
     }
     setAdding(true);
     try {
       await api.addImageModel(name.trim(), modelId.trim());
-      showSuccess("Model added");
+      showSuccess(t("Model added"));
       setName("");
       setModelId("");
       await reload();
@@ -105,7 +107,7 @@ export function ModelsPage() {
             <div className="flex items-center gap-2">
               <ImageIcon className="h-4 w-4 text-primary" />
               <CardTitle className="text-base">
-                Image
+                {t("Image")}
                 {imageModels !== null ? (
                   <span className="ml-2 text-xs font-normal text-muted-foreground">
                     {imageModels.length}
@@ -122,7 +124,7 @@ export function ModelsPage() {
               <RefreshCw
                 className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`}
               />
-              Sync
+              {t("Sync")}
             </Button>
           </div>
           <CardContent className="space-y-3 pt-0">
@@ -130,7 +132,7 @@ export function ModelsPage() {
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Name"
+                placeholder={t("Name")}
               />
               <Input
                 value={modelId}
@@ -144,7 +146,7 @@ export function ModelsPage() {
                 ) : (
                   <Plus className="h-4 w-4" />
                 )}
-                Add
+                {t("Add")}
               </Button>
             </div>
 
@@ -162,7 +164,7 @@ export function ModelsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-medium">{m.name}</span>
-                        {m.isDefault && <Badge tone="success">Default</Badge>}
+                        {m.isDefault && <Badge tone="success">{t("Default")}</Badge>}
                         {m.sdVersion && (
                           <Badge tone="info">{m.sdVersion}</Badge>
                         )}
@@ -179,7 +181,7 @@ export function ModelsPage() {
                           onClick={() => onSetDefault(m)}
                         >
                           <Star className="h-3.5 w-3.5" />
-                          Default
+                          {t("Default")}
                         </Button>
                       )}
                       <Button
@@ -201,7 +203,7 @@ export function ModelsPage() {
           <div className="flex items-center gap-2 p-5 pb-3">
             <Video className="h-4 w-4 text-primary" />
             <CardTitle className="text-base">
-              Video
+              {t("Video")}
               {videoModels !== null ? (
                 <span className="ml-2 text-xs font-normal text-muted-foreground">
                   {videoModels.length}
@@ -226,10 +228,10 @@ export function ModelsPage() {
                       </Badge>
                       <Badge tone="neutral">{vm.defaultDuration}s</Badge>
                       {vm.supportsAudio && (
-                        <Badge tone="success">audio</Badge>
+                        <Badge tone="success">{t("audio")}</Badge>
                       )}
                       {vm.supportsRefImage && (
-                        <Badge tone="success">ref image</Badge>
+                        <Badge tone="success">{t("ref image")}</Badge>
                       )}
                     </div>
                   </div>
@@ -269,15 +271,16 @@ function EmptyImageModels({
   onSync: () => void;
   syncing: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-accent-foreground">
         <Layers className="h-5 w-5" />
       </div>
-      <p className="text-sm font-medium">No image models</p>
+      <p className="text-sm font-medium">{t("No image models")}</p>
       <Button size="sm" onClick={onSync} disabled={syncing}>
         <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-        Sync from Leonardo
+        {t("Sync from Leonardo")}
       </Button>
     </div>
   );

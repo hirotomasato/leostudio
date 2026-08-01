@@ -22,10 +22,12 @@ import {
   type ImageGenerateResponse,
   type ImageModel,
 } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n";
 import { consumeReplay, onReplay } from "@/lib/replay";
 
 export function GenerateImagePage() {
   const { showSuccess, showError } = useToast();
+  const { t } = useTranslation();
 
   const [models, setModels] = useState<ImageModel[] | null>(null);
   const [aspects, setAspects] = useState<AspectRatioOption[] | null>(null);
@@ -58,7 +60,7 @@ export function GenerateImagePage() {
         setModelId(modelList[0].modelId);
       }
     } catch (err) {
-      showError(`Gagal load konfigurasi: ${(err as Error).message}`);
+      showError(`${t("Load failed")}: ${(err as Error).message}`);
     }
   }, [showError]);
 
@@ -82,7 +84,7 @@ export function GenerateImagePage() {
   const onGenerate = async () => {
     const p = prompt.trim();
     if (!p) {
-      showError("Prompt tidak boleh kosong.");
+      showError(t("Prompt cannot be empty."));
       return;
     }
     setGenerating(true);
@@ -105,16 +107,16 @@ export function GenerateImagePage() {
       // Surface auto-save outcome so the user knows where (or why not) the
       // file was saved without diving into Settings.
       if (res.provider.save_error) {
-        showError(`Auto-save gagal: ${res.provider.save_error}`);
+        showError(`${t("Auto-save failed")}: ${res.provider.save_error}`);
       } else if (
         res.provider.auto_save_enabled &&
         res.provider.saved_files.length > 0
       ) {
         showSuccess(
-          `Saved ${res.provider.saved_files.length} file → ${res.provider.saved_files[0]}`
+          t("Saved {count} file", { count: res.provider.saved_files.length })
         );
       } else {
-        showSuccess(`Generate sukses · ${res.data.length} image`);
+        showSuccess(t("Generated {count} image", { count: res.data.length }));
       }
     } catch (err) {
       showError((err as Error).message);
@@ -132,10 +134,10 @@ export function GenerateImagePage() {
       <Card className="self-start lg:max-h-full lg:overflow-y-auto">
         <div className="flex items-center gap-2 p-5 pb-3">
           <Wand2 className="h-4 w-4 text-primary" />
-          <CardTitle className="text-base">Compose</CardTitle>
+          <CardTitle className="text-base">{t("Compose")}</CardTitle>
         </div>
         <CardContent className="space-y-4 pt-0">
-          <Field label="Prompt">
+          <Field label={t("Prompt")}>
             <Textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
@@ -152,12 +154,12 @@ export function GenerateImagePage() {
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Model">
+            <Field label={t("Model")}>
               <Select
                 value={modelId}
                 onChange={(e) => setModelId(e.target.value)}
               >
-                {models.length === 0 && <option value="">No model</option>}
+                {models.length === 0 && <option value="">{t("No model")}</option>}
                 {models.map((m) => (
                   <option key={m.modelId} value={m.modelId}>
                     {m.name}
@@ -166,7 +168,7 @@ export function GenerateImagePage() {
                 ))}
               </Select>
             </Field>
-            <Field label="Aspect ratio">
+            <Field label={t("Aspect ratio")}>
               <Select
                 value={aspect}
                 onChange={(e) => setAspect(e.target.value)}
@@ -180,7 +182,7 @@ export function GenerateImagePage() {
             </Field>
           </div>
 
-          <Field label={`Quantity · ${n}`}>
+          <Field label={`${t("Quantity")} · ${n}`}>
             <Slider
               value={n}
               onValueChange={setN}
@@ -192,7 +194,7 @@ export function GenerateImagePage() {
 
           <div className="space-y-2">
             <p className="text-xs font-medium text-muted-foreground">
-              Reference <span className="text-[10px]">({refs.length}/3)</span>
+              {t("Reference")} <span className="text-[10px]">({refs.length}/3)</span>
             </p>
             <div className="space-y-2">
               {refs.map((r, i) => (
@@ -231,12 +233,12 @@ export function GenerateImagePage() {
             {generating ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Generating...
+                {t("Generating...")}
               </>
             ) : (
               <>
                 <Sparkles className="h-4 w-4" />
-                Generate
+                {t("Generate")}
                 <span className="ml-1 hidden text-[10px] opacity-60 sm:inline">
                   Ctrl+Enter
                 </span>
@@ -280,15 +282,16 @@ function ResultArea({
   n: number;
   onPreview: (url: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Card className="flex min-h-[420px] flex-col lg:max-h-full">
       <div className="flex items-center justify-between border-b border-border/60 p-5 pb-3">
         <div>
-          <CardTitle className="text-base">Result</CardTitle>
+          <CardTitle className="text-base">{t("Result")}</CardTitle>
           <CardDescription>
             {result
               ? `${result.data.length} image · cookie #${result.provider.used_cookie_id}`
-              : "Generated images appear here."}
+              : t("Generated images appear here.")}
           </CardDescription>
         </div>
         {result?.provider.generation_id ? (
@@ -335,6 +338,7 @@ function ImageTile({
   solo: boolean;
   onPreview: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
@@ -342,17 +346,17 @@ function ImageTile({
       className={`group relative block overflow-hidden rounded-lg border border-border bg-background/30 text-left ${
         solo ? "w-full max-w-3xl" : "w-full"
       }`}
-      aria-label="Preview image"
+      aria-label={t("Preview image")}
     >
       <img
         src={url}
-        alt="generated"
+        alt={t("generated")}
         className={`w-full object-cover transition group-hover:scale-[1.02] ${aspectClass(aspect)}`}
         loading="lazy"
       />
       <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md bg-background/80 px-2 py-1 text-[10px] backdrop-blur transition group-hover:opacity-100">
         <Download className="h-3 w-3" />
-        Preview
+        {t("Preview")}
       </span>
     </button>
   );
@@ -377,14 +381,14 @@ function ResultSkeletons({ aspect, count }: { aspect: string; count: number }) {
     </div>
   );
 }
-
 function EmptyState() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-accent-foreground">
         <ImageIcon className="h-5 w-5" />
       </div>
-      <p className="text-sm font-medium">Ready to generate</p>
+      <p className="text-sm font-medium">{t("Ready to generate")}</p>
     </div>
   );
 }

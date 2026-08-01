@@ -19,6 +19,7 @@ import { Lightbox } from "@/components/ui/lightbox";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 import { api, type GenerationLog } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n";
 import { useWailsEvent } from "@/lib/events";
 import { setReplay } from "@/lib/replay";
 import type { NavId } from "@/components/sidebar";
@@ -31,6 +32,7 @@ function isVideoLog(log: GenerationLog) {
 
 export function LibraryPage({ onNavigate }: { onNavigate: (id: NavId) => void }) {
   const { showError, showSuccess } = useToast();
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<GenerationLog[] | null>(null);
   const [previewURL, setPreviewURL] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -41,7 +43,7 @@ export function LibraryPage({ onNavigate }: { onNavigate: (id: NavId) => void })
       const list = await api.listGenerationLogs(200);
       setLogs(list);
     } catch (err) {
-      showError(`Gagal load history: ${(err as Error).message}`);
+      showError(`${t("Load failed")}: ${(err as Error).message}`);
     }
   }, [showError]);
 
@@ -64,8 +66,8 @@ export function LibraryPage({ onNavigate }: { onNavigate: (id: NavId) => void })
     });
     showSuccess(
       target === "video"
-        ? "Prompt dimuat ke Generate Video"
-        : "Prompt dimuat ke Generate Image"
+        ? t("Generate Video")
+        : t("Generate Image")
     );
     onNavigate(target);
   };
@@ -138,10 +140,11 @@ function FilterBar({
   onFilter: (m: FilterMode) => void;
   counts: { all: number; image: number; video: number };
 }) {
+  const { t } = useTranslation();
   const tabs: Array<{ id: FilterMode; label: string; count: number }> = [
-    { id: "all", label: "All", count: counts.all },
-    { id: "image", label: "Image", count: counts.image },
-    { id: "video", label: "Video", count: counts.video },
+    { id: "all", label: t("All"), count: counts.all },
+    { id: "image", label: t("Image"), count: counts.image },
+    { id: "video", label: t("Video"), count: counts.video },
   ];
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -150,7 +153,7 @@ function FilterBar({
         <Input
           value={search}
           onChange={(e) => onSearch(e.target.value)}
-          placeholder="Search prompt, model, gen id…"
+          placeholder={t("Search prompt, model, gen id…")}
           className="pl-9"
         />
       </div>
@@ -185,6 +188,7 @@ function LogCard({
   onPreview: (url: string) => void;
 }) {
   const created = new Date(log.createdAt * 1000).toLocaleString();
+  const { t } = useTranslation();
   const isVideo = isVideoLog(log);
   return (
     <Card className="transition hover:border-primary/30">
@@ -196,7 +200,7 @@ function LogCard({
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
             <Badge tone={isVideo ? "info" : "neutral"}>
-              {isVideo ? "Video" : "Image"}
+              {isVideo ? t("Video") : t("Image")}
             </Badge>
             <Badge tone={log.status === "success" ? "success" : "danger"}>
               {log.status}
@@ -220,7 +224,7 @@ function LogCard({
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button size="sm" variant="outline" onClick={onReplay}>
               <Repeat className="h-3.5 w-3.5" />
-              Use prompt
+              {t("Use prompt")}
             </Button>
           </div>
         </div>
@@ -236,6 +240,7 @@ function ThumbnailGrid({
   log: GenerationLog;
   onPreview: (url: string) => void;
 }) {
+  const { t } = useTranslation();
   const items = log.imageURLs.slice(0, 4);
   if (items.length === 0) {
     return (
@@ -255,7 +260,7 @@ function ThumbnailGrid({
             type="button"
             onClick={() => onPreview(u)}
             className="overflow-hidden rounded transition hover:ring-2 hover:ring-primary"
-            aria-label="Preview image"
+            aria-label={t("Preview image")}
           >
             <img
               src={u}
@@ -280,6 +285,7 @@ function InlineVideoTile({
   onPreview: () => void;
 }) {
   const [playing, setPlaying] = useState(false);
+  const { t } = useTranslation();
   const videoRef = useMemo(() => ({ current: null as HTMLVideoElement | null }), []);
 
   const togglePlay = (e: React.MouseEvent) => {
@@ -313,7 +319,7 @@ function InlineVideoTile({
           type="button"
           onClick={togglePlay}
           className="rounded-full bg-background/90 p-2 text-foreground shadow-lg transition hover:scale-105"
-          aria-label={playing ? "Pause" : "Play"}
+          aria-label={playing ? t("Pause") : t("Play")}
         >
           {playing ? (
             <Pause className="h-3.5 w-3.5" />
@@ -328,7 +334,7 @@ function InlineVideoTile({
             onPreview();
           }}
           className="rounded-full bg-background/90 p-2 text-foreground shadow-lg transition hover:scale-105"
-          aria-label="Open fullscreen"
+          aria-label={t("Open fullscreen")}
         >
           <Maximize2 className="h-3.5 w-3.5" />
         </button>
@@ -361,14 +367,15 @@ function LibrarySkeleton() {
 }
 
 function EmptyLibrary() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center gap-2 p-10 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
         <LibraryIcon className="h-7 w-7" />
       </div>
-      <h2 className="text-lg font-semibold">Tidak ada hasil</h2>
+      <h2 className="text-lg font-semibold">{t("No results")}</h2>
       <p className="max-w-md text-sm text-muted-foreground">
-        Coba ganti filter atau bersihkan kotak pencarian.
+        {t("Try changing the filter or clearing the search box.")}
       </p>
     </div>
   );
