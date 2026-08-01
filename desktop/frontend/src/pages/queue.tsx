@@ -156,21 +156,21 @@ function SubTabs({ tab, onChange }: { tab: SubTab; onChange: (t: SubTab) => void
   ];
   return (
     <div className="flex items-center gap-1 rounded-md border border-border bg-card p-1">
-      {tabs.map((t) => {
-        const Icon = t.icon;
+      {tabs.map((item) => {
+        const Icon = item.icon;
         return (
           <button
-            key={t.id}
-            onClick={() => onChange(t.id)}
+            key={item.id}
+            onClick={() => onChange(item.id)}
             className={cn(
               "inline-flex flex-1 items-center justify-center gap-1.5 rounded px-3 py-1.5 text-sm transition",
-              tab === t.id
+              tab === item.id
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
             <Icon className="h-4 w-4" />
-            {t(t.label)}
+            {t(item.label)}
           </button>
         );
       })}

@@ -62,7 +62,7 @@ export function SettingsPage() {
     } finally {
       setLoading(false);
     }
-  }, [showError]);
+  }, [showError, t]);
 
   useEffect(() => {
     void reload();
@@ -72,7 +72,7 @@ export function SettingsPage() {
     setSavingAspect(true);
     try {
       await api.setSetting("default_aspect_ratio", aspect);
-      showSuccess(t("Saved", { value: aspect }));
+      showSuccess(t("Saved {value}", { value: aspect }));
     } catch (err) {
       showError((err as Error).message);
     } finally {

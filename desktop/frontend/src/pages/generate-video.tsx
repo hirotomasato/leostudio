@@ -63,7 +63,7 @@ export function GenerateVideoPage() {
     } catch (err) {
       showError(`${t("Load failed")}: ${(err as Error).message}`);
     }
-  }, [showError]);
+  }, [showError, t]);
 
   useEffect(() => {
     void loadModels();
@@ -152,7 +152,9 @@ export function GenerateVideoPage() {
           <div className="p-10 text-center">
             <p className="text-sm font-medium">{t("No video model registered")}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Catalog kosong — tambahkan model di internal/service/video_models.go
+              {t("Video model catalog is empty. Add a model in {path}.", {
+                path: "internal/service/video_models.go",
+              })}
             </p>
           </div>
         </Card>
@@ -181,7 +183,7 @@ export function GenerateVideoPage() {
                   if (!generating && prompt.trim() && slug) void onGenerate();
                 }
               }}
-              placeholder="Cinematic footage of..."
+              placeholder={t("Cinematic footage of...")}
               className="min-h-[120px]"
               spellCheck={false}
             />
@@ -325,7 +327,10 @@ function VideoResultArea({
           <CardTitle className="text-base">{t("Result")}</CardTitle>
           <CardDescription>
             {result
-              ? `${result.data.length} video · cookie #${result.provider.used_cookie_id}`
+              ? t("{count} video · cookie #{id}", {
+                  count: result.data.length,
+                  id: result.provider.used_cookie_id,
+                })
               : t("Generated video appears here.")}
           </CardDescription>
         </div>

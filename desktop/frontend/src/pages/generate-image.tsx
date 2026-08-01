@@ -62,7 +62,7 @@ export function GenerateImagePage() {
     } catch (err) {
       showError(`${t("Load failed")}: ${(err as Error).message}`);
     }
-  }, [showError]);
+  }, [showError, t]);
 
   useEffect(() => {
     void loadConfig();
@@ -150,7 +150,7 @@ export function GenerateImagePage() {
                   if (!generating && prompt.trim() && modelId) void onGenerate();
                 }
               }}
-              placeholder="A cinematic shot of..."
+              placeholder={t("A cinematic shot of...")}
               className="min-h-[120px]"
               spellCheck={false}
             />
@@ -166,7 +166,7 @@ export function GenerateImagePage() {
                 {models.map((m) => (
                   <option key={m.modelId} value={m.modelId}>
                     {m.name}
-                    {m.isDefault ? " · default" : ""}
+                    {m.isDefault ? ` · ${t("default")}` : ""}
                   </option>
                 ))}
               </Select>
@@ -293,7 +293,10 @@ function ResultArea({
           <CardTitle className="text-base">{t("Result")}</CardTitle>
           <CardDescription>
             {result
-              ? `${result.data.length} image · cookie #${result.provider.used_cookie_id}`
+              ? t("{count} image · cookie #{id}", {
+                  count: result.data.length,
+                  id: result.provider.used_cookie_id,
+                })
               : t("Generated images appear here.")}
           </CardDescription>
         </div>
@@ -353,7 +356,7 @@ function ImageTile({
     >
       <img
         src={url}
-        alt={t("generated")}
+        alt={t("Generated image")}
         className={`w-full object-cover transition group-hover:scale-[1.02] ${aspectClass(aspect)}`}
         loading="lazy"
       />
