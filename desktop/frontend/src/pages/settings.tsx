@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   HardDrive,
   Save,
@@ -27,6 +27,8 @@ import {
 export function SettingsPage() {
   const { showSuccess, showError } = useToast();
   const { locale, setLocale, t } = useTranslation();
+  const translationRef = useRef(t);
+  translationRef.current = t;
 
   const [loading, setLoading] = useState(true);
   const [aspect, setAspect] = useState("1:1");
@@ -58,11 +60,11 @@ export function SettingsPage() {
       const def = modelList.find((m) => m.isDefault);
       setDefaultModelId(def?.modelId ?? "");
     } catch (err) {
-      showError(`${t("Load failed")}: ${(err as Error).message}`);
+      showError(`${translationRef.current("Load failed")}: ${(err as Error).message}`);
     } finally {
       setLoading(false);
     }
-  }, [showError, t]);
+  }, [showError]);
 
   useEffect(() => {
     void reload();
