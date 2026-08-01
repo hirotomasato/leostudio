@@ -103,7 +103,7 @@ export function SettingsPage() {
     setSavingDefaultModel(true);
     try {
       await api.setDefaultImageModel(m.id);
-      showSuccess(`Default · ${m.name}`);
+      showSuccess(t("Default · {name}", { name: m.name }));
       await reload();
     } catch (err) {
       showError((err as Error).message);

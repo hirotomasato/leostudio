@@ -21,6 +21,8 @@ describe("i18n locale selection", () => {
     expect(resolveLocale("zh-CN")).toBe("zh-CN");
     expect(translate("zh-CN", "Generate Image")).toBe("生成图片");
     expect(translate("zh-CN", "Prompt cannot be empty.")).toBe("提示词不能为空。");
+    expect(translate("zh-CN", "Default · {name}", { name: "Phoenix" })).toBe("默认 · Phoenix");
+    expect(translate("zh-CN", "Prompt loaded into {target}", { target: "生成图片" })).toBe("提示词已载入生成图片");
   });
 
   it("falls back to English source text for missing translations", () => {

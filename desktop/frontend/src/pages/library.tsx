@@ -45,7 +45,7 @@ export function LibraryPage({ onNavigate }: { onNavigate: (id: NavId) => void })
     } catch (err) {
       showError(`${t("Load failed")}: ${(err as Error).message}`);
     }
-  }, [showError]);
+  }, [showError, t]);
 
   useEffect(() => {
     void reload();
@@ -64,11 +64,8 @@ export function LibraryPage({ onNavigate }: { onNavigate: (id: NavId) => void })
       aspectRatio: log.aspectRatio || undefined,
       modelId: log.modelID,
     });
-    showSuccess(
-      target === "video"
-        ? t("Generate Video")
-        : t("Generate Image")
-    );
+    const targetLabel = target === "video" ? t("Generate Video") : t("Generate Image");
+    showSuccess(t("Prompt loaded into {target}", { target: targetLabel }));
     onNavigate(target);
   };
 

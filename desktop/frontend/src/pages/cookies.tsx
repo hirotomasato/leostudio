@@ -47,7 +47,7 @@ export function CookiesPage() {
     } catch (err) {
       showError(`${t("Load failed")}: ${(err as Error).message}`);
     }
-  }, [showError]);
+  }, [showError, t]);
 
   useEffect(() => {
     void reload();
@@ -310,7 +310,7 @@ function Stats({ health }: { health: CookieHealth | null }) {
         tint: "from-slate-500/30 to-slate-500/0 text-slate-300",
       },
     ],
-    [health]
+    [health, t]
   );
 
   return (

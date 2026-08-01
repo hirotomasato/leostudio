@@ -40,7 +40,7 @@ export function ModelsPage() {
     } catch (err) {
       showError(`${t("Load failed")}: ${(err as Error).message}`);
     }
-  }, [showError]);
+  }, [showError, t]);
 
   useEffect(() => {
     void reload();
@@ -139,7 +139,7 @@ export function ModelsPage() {
               <Input
                 value={modelId}
                 onChange={(e) => setModelId(e.target.value)}
-                placeholder="Model UUID"
+                placeholder={t("Model UUID")}
                 className="font-mono text-xs"
               />
               <Button onClick={onAddModel} disabled={adding || !modelId.trim()}>
