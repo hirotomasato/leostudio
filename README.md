@@ -18,7 +18,7 @@ juggling API keys.
 
 | Region | Purpose |
 |---|---|
-| Sidebar (Workspace) | Generate Image, Generate Video, Library |
+| Sidebar (Workspace) | Generate Image, Generate Video, Queue, Library |
 | Sidebar (Manage) | Cookies (pool), Models (catalog + custom UUIDs) |
 | Sidebar (footer) | Settings, About |
 | Topbar | Page title, live credit pill (auto-refreshed after each generate), theme switcher |
