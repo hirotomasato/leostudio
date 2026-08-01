@@ -15,6 +15,8 @@ import { SettingsPage } from "@/pages/settings";
 // that consume credits.
 const BALANCE_PAGES = new Set<NavId>(["image", "video", "queue"]);
 
+import { useTranslation } from "@/lib/i18n";
+
 const PAGE_META: Record<NavId, { title: string; render: (ctx: PageContext) => JSX.Element }> = {
   image: {
     title: "Generate Image",
@@ -70,6 +72,7 @@ export default function App() {
     localStorage.setItem(STORAGE_COLLAPSED, collapsed ? "1" : "0");
   }, [collapsed]);
 
+  const { t } = useTranslation();
   const meta = useMemo(() => PAGE_META[page], [page]);
 
   return (
@@ -83,7 +86,7 @@ export default function App() {
       />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar
-          title={meta.title}
+          title={t(meta.title)}
           rightSlot={BALANCE_PAGES.has(page) ? <BalancePill /> : undefined}
         />
         <main key={page} className="min-h-0 flex-1 animate-fade-in overflow-hidden bg-background">

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   HardDrive,
   Save,
@@ -15,6 +15,7 @@ import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 import {
   api,
   type AspectRatioOption,
@@ -25,6 +26,9 @@ import {
 // Each section saves independently so a partial edit never blocks others.
 export function SettingsPage() {
   const { showSuccess, showError } = useToast();
+  const { locale, setLocale, t } = useTranslation();
+  const translationRef = useRef(t);
+  translationRef.current = t;
 
   const [loading, setLoading] = useState(true);
   const [aspect, setAspect] = useState("1:1");
@@ -56,7 +60,7 @@ export function SettingsPage() {
       const def = modelList.find((m) => m.isDefault);
       setDefaultModelId(def?.modelId ?? "");
     } catch (err) {
-      showError(`Load failed: ${(err as Error).message}`);
+      showError(`${translationRef.current("Load failed")}: ${(err as Error).message}`);
     } finally {
       setLoading(false);
     }
@@ -70,7 +74,7 @@ export function SettingsPage() {
     setSavingAspect(true);
     try {
       await api.setSetting("default_aspect_ratio", aspect);
-      showSuccess(`Saved · ${aspect}`);
+      showSuccess(t("Saved {value}", { value: aspect }));
     } catch (err) {
       showError((err as Error).message);
     } finally {
@@ -86,7 +90,7 @@ export function SettingsPage() {
         "save_images_dir",
         saveDir.trim() || "data/generated"
       );
-      showSuccess("Saved");
+      showSuccess(t("Saved"));
     } catch (err) {
       showError((err as Error).message);
     } finally {
@@ -101,7 +105,7 @@ export function SettingsPage() {
     setSavingDefaultModel(true);
     try {
       await api.setDefaultImageModel(m.id);
-      showSuccess(`Default · ${m.name}`);
+      showSuccess(t("Default · {name}", { name: m.name }));
       await reload();
     } catch (err) {
       showError((err as Error).message);
@@ -117,7 +121,17 @@ export function SettingsPage() {
   return (
     <div className="h-full overflow-y-auto">
       <div className="space-y-6 p-6">
-        <Section icon={RectangleHorizontal} title="Default aspect ratio">
+        <Section icon={RectangleHorizontal} title={t("Language")}>
+          <div className="flex flex-wrap items-center gap-3">
+            <Select value={locale} onChange={(e) => setLocale(e.target.value as typeof locale)} className="max-w-xs">
+              <option value="en">English</option>
+              <option value="zh-CN">简体中文</option>
+            </Select>
+            <p className="text-xs text-muted-foreground">{t("Choose the display language for LeoStudio.")}</p>
+          </div>
+        </Section>
+
+        <Section icon={RectangleHorizontal} title={t("Default aspect ratio")}>
           <div className="flex items-center gap-2">
             <Select
               value={aspect}
@@ -136,15 +150,15 @@ export function SettingsPage() {
               ) : (
                 <Save className="h-4 w-4" />
               )}
-              Save
+              {t("Save")}
             </Button>
           </div>
         </Section>
 
-        <Section icon={Star} title="Default image model">
+        <Section icon={Star} title={t("Default image model")}>
           {models.length === 0 ? (
             <p className="text-xs text-muted-foreground">
-              Add or sync a model first.
+              {t("Add or sync a model first.")}
             </p>
           ) : (
             <div className="flex items-center gap-2">
@@ -165,15 +179,15 @@ export function SettingsPage() {
                 ) : (
                   <Save className="h-4 w-4" />
                 )}
-                Save
+                {t("Save")}
               </Button>
             </div>
           )}
         </Section>
 
-        <Section icon={HardDrive} title="Auto-save">
+        <Section icon={HardDrive} title={t("Auto-save")}>
           <div className="flex items-center justify-between rounded-md border border-border bg-card px-3 py-2">
-            <span className="text-sm">Save outputs to disk</span>
+            <span className="text-sm">{t("Save outputs to disk")}</span>
             <Switch checked={autoSave} onCheckedChange={setAutoSave} />
           </div>
 
@@ -197,7 +211,7 @@ export function SettingsPage() {
                   showError((err as Error).message);
                 }
               }}
-              aria-label="Choose folder"
+              aria-label={t("Choose folder")}
             >
               <FolderOpen className="h-4 w-4" />
             </Button>
@@ -212,7 +226,7 @@ export function SettingsPage() {
                   showError((err as Error).message);
                 }
               }}
-              aria-label="Open folder"
+              aria-label={t("Open folder")}
             >
               <ExternalLink className="h-4 w-4" />
             </Button>
@@ -224,7 +238,7 @@ export function SettingsPage() {
             ) : (
               <Save className="h-4 w-4" />
             )}
-            Save
+            {t("Save")}
           </Button>
         </Section>
       </div>

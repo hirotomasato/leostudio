@@ -20,10 +20,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
 import { api, type Cookie, type CookieHealth } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n";
 import { useWailsEvent } from "@/lib/events";
 
 export function CookiesPage() {
   const { showSuccess, showError } = useToast();
+  const { t } = useTranslation();
 
   const [cookies, setCookies] = useState<Cookie[] | null>(null);
   const [health, setHealth] = useState<CookieHealth | null>(null);
@@ -43,9 +45,9 @@ export function CookiesPage() {
       setCookies(list);
       setHealth(summary);
     } catch (err) {
-      showError(`Gagal memuat cookies: ${(err as Error).message}`);
+      showError(`${t("Load failed")}: ${(err as Error).message}`);
     }
-  }, [showError]);
+  }, [showError, t]);
 
   useEffect(() => {
     void reload();
@@ -79,15 +81,16 @@ export function CookiesPage() {
   const onAdd = async () => {
     const value = rawCookie.trim();
     if (!value) {
-      showError("Paste full cookie string dulu sebelum simpan.");
+      showError(t("Paste a full cookie string before saving."));
       return;
     }
     setAdding(true);
     try {
       const res = await api.addCookie(value);
-      showSuccess(
-        `Cookie tersimpan: ${res.email || "akun"} · balance ${res.balance.toLocaleString()}`
-      );
+      showSuccess(t("Cookie saved: {account} · balance {balance}", {
+        account: res.email || t("account"),
+        balance: res.balance.toLocaleString(),
+      }));
       setRawCookie("");
       await reload();
     } catch (err) {
@@ -101,10 +104,10 @@ export function CookiesPage() {
     setRefreshing(true);
     try {
       const res = await api.refreshCookieProfiles();
-      showSuccess(`Refresh selesai: ${res.ok}/${res.checked} berhasil`);
+      showSuccess(t("Refresh complete: {ok}/{checked} succeeded", res));
       await reload();
     } catch (err) {
-      showError(`Refresh gagal: ${(err as Error).message}`);
+      showError(`${t("Refresh failed")}: ${(err as Error).message}`);
     } finally {
       setRefreshing(false);
     }
@@ -120,12 +123,15 @@ export function CookiesPage() {
   };
 
   const onDelete = async (cookie: Cookie) => {
-    if (!confirm(`Hapus cookie #${cookie.id} (${cookie.email || "no email"})?`)) {
+    if (!confirm(t("Delete cookie #{id} ({email})?", {
+      id: cookie.id,
+      email: cookie.email || t("no email"),
+    }))) {
       return;
     }
     try {
       await api.deleteCookie(cookie.id);
-      showSuccess(`Cookie #${cookie.id} dihapus.`);
+      showSuccess(t("Cookie #{id} deleted.", { id: cookie.id }));
       await reload();
     } catch (err) {
       showError((err as Error).message);
@@ -141,15 +147,16 @@ export function CookiesPage() {
     if (!editing) return;
     const value = editValue.trim();
     if (!value) {
-      showError("Paste cookie baru dulu.");
+      showError(t("Paste the new cookie first."));
       return;
     }
     setEditSaving(true);
     try {
       const res = await api.updateCookie(editing.id, value);
-      showSuccess(
-        `Cookie #${editing.id} diperbarui · balance ${res.balance.toLocaleString()}`
-      );
+      showSuccess(t("Cookie #{id} updated · balance {balance}", {
+        id: editing.id,
+        balance: res.balance.toLocaleString(),
+      }));
       setEditing(null);
       setEditValue("");
       await reload();
@@ -167,7 +174,7 @@ export function CookiesPage() {
 
       <Card>
         <div className="flex items-center justify-between p-5 pb-3">
-          <CardTitle className="text-base">Add cookie</CardTitle>
+          <CardTitle className="text-base">{t("Add cookie")}</CardTitle>
         </div>
         <CardContent className="space-y-3 pt-0">
           <Textarea
@@ -184,7 +191,7 @@ export function CookiesPage() {
               ) : (
                 <Plus className="h-4 w-4" />
               )}
-              {adding ? "Validating" : "Add"}
+              {adding ? t("Validating") : t("Add")}
             </Button>
           </div>
         </CardContent>
@@ -193,7 +200,7 @@ export function CookiesPage() {
       <Card>
         <div className="flex items-center justify-between p-5 pb-2">
           <CardTitle className="text-base">
-            Cookie pool
+            {t("Cookie pool")}
             {cookies !== null ? (
               <span className="ml-2 text-xs font-normal text-muted-foreground">
                 {cookies.length}
@@ -207,7 +214,7 @@ export function CookiesPage() {
             disabled={refreshing || (cookies?.length ?? 0) === 0}
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-            Refresh
+            {t("Refresh")}
           </Button>
         </div>
         <CardContent className="pt-0">
@@ -234,7 +241,7 @@ export function CookiesPage() {
       <Dialog
         open={editing !== null}
         onClose={() => setEditing(null)}
-        title={editing ? `Update cookie #${editing.id}` : "Update cookie"}
+        title={editing ? `${t("Update cookie")} #${editing.id}` : t("Update cookie")}
         description={editing?.email ? editing.email : undefined}
       >
         <div className="space-y-3">
@@ -252,7 +259,7 @@ export function CookiesPage() {
               onClick={() => setEditing(null)}
               disabled={editSaving}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               size="sm"
@@ -264,7 +271,7 @@ export function CookiesPage() {
               ) : (
                 <Pencil className="h-4 w-4" />
               )}
-              Update
+              {t("Update")}
             </Button>
           </div>
         </div>
@@ -275,34 +282,35 @@ export function CookiesPage() {
 }
 
 function Stats({ health }: { health: CookieHealth | null }) {
+  const { t } = useTranslation();
   const cards = useMemo(
     () => [
       {
-        label: "Active balance",
+        label: t("Active balance"),
         value: health ? health.active_balance.toLocaleString() : null,
         icon: Wallet,
         tint: "from-violet-500/30 to-violet-500/0 text-violet-300",
       },
       {
-        label: "Ready accounts",
+        label: t("Ready accounts"),
         value: health ? `${health.ready}` : null,
         icon: ShieldCheck,
         tint: "from-emerald-500/30 to-emerald-500/0 text-emerald-300",
       },
       {
-        label: "Depleted",
+        label: t("Depleted"),
         value: health ? `${health.depleted}` : null,
         icon: ShieldAlert,
         tint: "from-amber-500/30 to-amber-500/0 text-amber-300",
       },
       {
-        label: "Disabled",
+        label: t("Disabled"),
         value: health ? `${health.disabled}` : null,
         icon: Power,
         tint: "from-slate-500/30 to-slate-500/0 text-slate-300",
       },
     ],
-    [health]
+    [health, t]
   );
 
   return (
@@ -339,9 +347,10 @@ function Stats({ health }: { health: CookieHealth | null }) {
 }
 
 function StatusBadge({ status }: { status: Cookie["status"] }) {
-  if (status === "READY") return <Badge tone="success">Ready</Badge>;
-  if (status === "DEPLETED") return <Badge tone="warning">Depleted</Badge>;
-  return <Badge tone="neutral">Disabled</Badge>;
+  const { t } = useTranslation();
+  if (status === "READY") return <Badge tone="success">{t("Ready")}</Badge>;
+  if (status === "DEPLETED") return <Badge tone="warning">{t("Depleted")}</Badge>;
+  return <Badge tone="neutral">{t("Disabled")}</Badge>;
 }
 
 function CookieRow({
@@ -355,6 +364,7 @@ function CookieRow({
   onDelete: () => void;
   onEdit: () => void;
 }) {
+  const { t } = useTranslation();
   const last = cookie.last_checked_at
     ? new Date(cookie.last_checked_at * 1000).toLocaleString()
     : "—";
@@ -371,11 +381,11 @@ function CookieRow({
           ) : null}
         </div>
         <p className="mt-1 truncate text-xs text-muted-foreground">
-          balance{" "}
+          {t("balance")} {" "}
           <span className="font-medium text-foreground">
             {cookie.last_balance.toLocaleString()}
           </span>
-          {" · "}last checked {last}
+          {" · "}{t("last checked")} {last}
           {cookie.last_error ? (
             <>
               {" · "}
@@ -389,7 +399,7 @@ function CookieRow({
           variant="ghost"
           size="sm"
           onClick={onToggle}
-          aria-label={cookie.is_active ? "Disable" : "Enable"}
+          aria-label={cookie.is_active ? t("Disable") : t("Enable")}
         >
           {cookie.is_active ? (
             <ToggleRight className="h-4 w-4 text-emerald-400" />
@@ -397,14 +407,14 @@ function CookieRow({
             <ToggleLeft className="h-4 w-4" />
           )}
           <span className="text-xs">
-            {cookie.is_active ? "Active" : "Disabled"}
+            {cookie.is_active ? t("Active") : t("Disabled")}
           </span>
         </Button>
         <Button
           variant="ghost"
           size="icon"
           onClick={onEdit}
-          aria-label="Edit cookie"
+          aria-label={t("Edit cookie")}
         >
           <Pencil className="h-4 w-4" />
         </Button>
@@ -412,7 +422,7 @@ function CookieRow({
           variant="ghost"
           size="icon"
           onClick={onDelete}
-          aria-label="Delete cookie"
+          aria-label={t("Delete cookie")}
         >
           <Trash2 className="h-4 w-4 text-red-300" />
         </Button>
@@ -441,12 +451,13 @@ function CookiesSkeleton() {
 }
 
 function EmptyPool() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-accent-foreground">
         <KeyRound className="h-5 w-5" />
       </div>
-      <p className="text-sm font-medium">No cookies</p>
+      <p className="text-sm font-medium">{t("No cookies")}</p>
     </div>
   );
 }

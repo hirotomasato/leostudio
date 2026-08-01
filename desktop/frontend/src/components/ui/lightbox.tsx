@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { X, ExternalLink, Download, Loader2 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/toast";
 
@@ -16,6 +17,7 @@ export function Lightbox({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const { showSuccess, showError } = useToast();
+  const { t } = useTranslation();
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
@@ -37,10 +39,10 @@ export function Lightbox({
     try {
       const saved = await api.downloadAsset(url, suggestedName);
       if (saved) {
-        showSuccess(`Tersimpan: ${saved}`);
+        showSuccess(t("Saved {value}", { value: saved }));
       }
     } catch (err) {
-      showError(`Download gagal: ${(err as Error).message}`);
+      showError(`${t("Download failed")}: ${(err as Error).message}`);
     } finally {
       setDownloading(false);
     }
@@ -66,7 +68,7 @@ export function Lightbox({
         ) : (
           <img
             src={url}
-            alt="preview"
+            alt={t("Preview")}
             className="max-h-[80vh] max-w-full rounded-lg shadow-2xl"
           />
         )}
@@ -81,7 +83,7 @@ export function Lightbox({
             ) : (
               <Download className="h-3.5 w-3.5" />
             )}
-            {downloading ? "Saving…" : "Download"}
+            {downloading ? t("Saving…") : t("Download")}
           </button>
           <a
             href={url}
@@ -90,14 +92,14 @@ export function Lightbox({
             className="inline-flex items-center gap-1.5 rounded-md bg-card/80 px-3 py-1.5 text-xs text-foreground shadow ring-1 ring-border backdrop-blur transition hover:bg-card"
           >
             <ExternalLink className="h-3.5 w-3.5" />
-            Open
+            {t("Open")}
           </a>
           <button
             onClick={onClose}
             className="inline-flex items-center gap-1.5 rounded-md bg-card/80 px-3 py-1.5 text-xs text-foreground shadow ring-1 ring-border backdrop-blur transition hover:bg-card"
           >
             <X className="h-3.5 w-3.5" />
-            Close
+            {t("Close")}
           </button>
         </div>
       </div>

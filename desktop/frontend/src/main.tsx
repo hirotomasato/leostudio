@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "@/App";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
+import { I18nProvider } from "@/lib/i18n";
 import "@/styles/globals.css";
 
 const container = document.getElementById("root");
@@ -12,10 +13,12 @@ if (!container) {
 
 createRoot(container).render(
   <React.StrictMode>
-    <ThemeProvider defaultTheme="dark">
-      <ToastProvider>
-        <App />
-      </ToastProvider>
-    </ThemeProvider>
+    <I18nProvider>
+      <ThemeProvider defaultTheme="dark">
+        <ToastProvider>
+          <App />
+        </ToastProvider>
+      </ThemeProvider>
+    </I18nProvider>
   </React.StrictMode>
 );

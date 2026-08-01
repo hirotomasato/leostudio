@@ -20,6 +20,7 @@ import { Lightbox } from "@/components/ui/lightbox";
 import { ImageDropzone, type DroppedImage } from "@/components/image-dropzone";
 import { useToast } from "@/components/ui/toast";
 import { api, type VideoGenerateResponse, type VideoModel } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n";
 import { consumeReplay, onReplay } from "@/lib/replay";
 
 // Aspect options that Seedance supports across all resolutions.
@@ -34,6 +35,7 @@ function resolutionLabel(mode: string) {
 
 export function GenerateVideoPage() {
   const { showSuccess, showError } = useToast();
+  const { t } = useTranslation();
 
   const [models, setModels] = useState<VideoModel[] | null>(null);
   const [slug, setSlug] = useState<string>("");
@@ -59,9 +61,9 @@ export function GenerateVideoPage() {
         setDuration(list[0].defaultDuration);
       }
     } catch (err) {
-      showError(`Gagal load models: ${(err as Error).message}`);
+      showError(`${t("Load failed")}: ${(err as Error).message}`);
     }
-  }, [showError]);
+  }, [showError, t]);
 
   useEffect(() => {
     void loadModels();
@@ -100,7 +102,7 @@ export function GenerateVideoPage() {
   const onGenerate = async () => {
     const p = prompt.trim();
     if (!p) {
-      showError("Prompt tidak boleh kosong.");
+      showError(t("Prompt cannot be empty."));
       return;
     }
     setGenerating(true);
@@ -121,16 +123,16 @@ export function GenerateVideoPage() {
       setResult(res);
 
       if (res.provider.save_error) {
-        showError(`Auto-save gagal: ${res.provider.save_error}`);
+        showError(`${t("Auto-save failed")}: ${res.provider.save_error}`);
       } else if (
         res.provider.auto_save_enabled &&
         res.provider.saved_files.length > 0
       ) {
         showSuccess(
-          `Saved → ${res.provider.saved_files[0]}`
+          t("Saved {value}", { value: res.provider.saved_files[0] })
         );
       } else {
-        showSuccess(`Video selesai · ${duration}s · ${aspect}`);
+        showSuccess(`${t("Video complete")} · ${duration}s · ${aspect}`);
       }
     } catch (err) {
       showError((err as Error).message);
@@ -148,9 +150,11 @@ export function GenerateVideoPage() {
       <div className="p-6">
         <Card>
           <div className="p-10 text-center">
-            <p className="text-sm font-medium">No video model registered</p>
+            <p className="text-sm font-medium">{t("No video model registered")}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Catalog kosong — tambahkan model di internal/service/video_models.go
+              {t("Video model catalog is empty. Add a model in {path}.", {
+                path: "internal/service/video_models.go",
+              })}
             </p>
           </div>
         </Card>
@@ -166,10 +170,10 @@ export function GenerateVideoPage() {
       <Card className="self-start lg:max-h-full lg:overflow-y-auto">
         <div className="flex items-center gap-2 p-5 pb-3">
           <Wand2 className="h-4 w-4 text-primary" />
-          <CardTitle className="text-base">Compose</CardTitle>
+          <CardTitle className="text-base">{t("Compose")}</CardTitle>
         </div>
         <CardContent className="space-y-4 pt-0">
-          <Field label="Prompt">
+          <Field label={t("Prompt")}>
             <Textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
@@ -179,14 +183,14 @@ export function GenerateVideoPage() {
                   if (!generating && prompt.trim() && slug) void onGenerate();
                 }
               }}
-              placeholder="Cinematic footage of..."
+              placeholder={t("Cinematic footage of...")}
               className="min-h-[120px]"
               spellCheck={false}
             />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Model">
+            <Field label={t("Model")}>
               <Select value={slug} onChange={(e) => setSlug(e.target.value)}>
                 {models.map((m) => (
                   <option key={m.slug} value={m.slug}>
@@ -195,7 +199,7 @@ export function GenerateVideoPage() {
                 ))}
               </Select>
             </Field>
-            <Field label="Aspect ratio">
+            <Field label={t("Aspect ratio")}>
               <Select value={aspect} onChange={(e) => setAspect(e.target.value)}>
                 {ASPECTS.map((a) => (
                   <option key={a} value={a}>
@@ -206,7 +210,7 @@ export function GenerateVideoPage() {
             </Field>
           </div>
 
-          <Field label="Resolution">
+          <Field label={t("Resolution")}>
             <Select
               value={resolution}
               onChange={(e) => setResolution(e.target.value)}
@@ -219,7 +223,7 @@ export function GenerateVideoPage() {
             </Select>
           </Field>
 
-          <Field label={`Duration · ${duration}s`}>
+          <Field label={`${t("Duration")} · ${duration}s`}>
             <Slider
               value={duration}
               onValueChange={(v) => {
@@ -245,7 +249,7 @@ export function GenerateVideoPage() {
                 ) : (
                   <VolumeX className="h-4 w-4 text-muted-foreground" />
                 )}
-                <span>Native audio</span>
+                <span>{t("Native audio")}</span>
               </div>
               <Switch checked={audio} onCheckedChange={setAudio} />
             </div>
@@ -254,7 +258,7 @@ export function GenerateVideoPage() {
           {selectedModel?.supportsRefImage && (
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-muted-foreground">
-                Start frame <span className="text-[10px]">(optional)</span>
+                {t("Start frame")} <span className="text-[10px]">({t("optional")})</span>
               </p>
               <ImageDropzone
                 value={startFrame}
@@ -272,12 +276,12 @@ export function GenerateVideoPage() {
             {generating ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Generating...
+                {t("Generating...")}
               </>
             ) : (
               <>
                 <Sparkles className="h-4 w-4" />
-                Generate
+                {t("Generate")}
                 <span className="ml-1 hidden text-[10px] opacity-60 sm:inline">
                   Ctrl+Enter
                 </span>
@@ -315,15 +319,19 @@ function VideoResultArea({
   audio: boolean;
   onPreview: (url: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Card className="flex min-h-[420px] flex-col lg:max-h-full">
       <div className="flex items-center justify-between border-b border-border/60 p-5 pb-3">
         <div>
-          <CardTitle className="text-base">Result</CardTitle>
+          <CardTitle className="text-base">{t("Result")}</CardTitle>
           <CardDescription>
             {result
-              ? `${result.data.length} video · cookie #${result.provider.used_cookie_id}`
-              : "Generated video appears here."}
+              ? t("{count} video · cookie #{id}", {
+                  count: result.data.length,
+                  id: result.provider.used_cookie_id,
+                })
+              : t("Generated video appears here.")}
           </CardDescription>
         </div>
         {result?.provider.generation_id ? (
@@ -397,6 +405,7 @@ function VideoPlayer({
   audio: boolean;
   onPreview: () => void;
 }) {
+  const { t } = useTranslation();
   const ratio = videoAspectClass(aspect);
   const boxWidth = videoBoxWidth(aspect);
 
@@ -419,10 +428,10 @@ function VideoPlayer({
           type="button"
           onClick={onPreview}
           className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md bg-background/80 px-2 py-1 text-[11px] backdrop-blur transition hover:bg-background"
-          aria-label="Open fullscreen preview"
+          aria-label={t("Open fullscreen preview")}
         >
           <Maximize2 className="h-3 w-3" />
-          Preview
+          {t("Preview")}
         </button>
       </div>
       <div className="flex items-center justify-end px-3 py-2">
@@ -432,7 +441,7 @@ function VideoPlayer({
           className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
         >
           <Maximize2 className="h-3 w-3" />
-          Open
+          {t("Open")}
         </button>
       </div>
     </div>
@@ -440,6 +449,7 @@ function VideoPlayer({
 }
 
 function VideoSkeleton({ duration, aspect }: { duration: number; aspect: string }) {
+  const { t } = useTranslation();
   const ratio = videoAspectClass(aspect);
   const boxWidth = videoBoxWidth(aspect);
   return (
@@ -451,7 +461,7 @@ function VideoSkeleton({ duration, aspect }: { duration: number; aspect: string 
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
             <p className="text-xs text-muted-foreground">
-              Rendering {duration}s clip
+              {t("Rendering {duration}s clip", { duration })}
             </p>
           </div>
         </div>
@@ -464,12 +474,13 @@ function VideoSkeleton({ duration, aspect }: { duration: number; aspect: string 
 }
 
 function EmptyVideo() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-accent-foreground">
         <Video className="h-5 w-5" />
       </div>
-      <p className="text-sm font-medium">Ready to generate</p>
+      <p className="text-sm font-medium">{t("Ready to generate")}</p>
     </div>
   );
 }

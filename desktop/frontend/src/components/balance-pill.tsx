@@ -2,12 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import { Wallet } from "lucide-react";
 import { api, type CookieHealth } from "@/lib/api";
 import { useWailsEvent } from "@/lib/events";
+import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 // Compact balance indicator. Lives near the top of generate pages so users
 // can see remaining credit without leaving Compose. Auto-refreshes when
 // the backend emits "cookies:changed" (e.g. after generate finishes).
 export function BalancePill({ className }: { className?: string }) {
+  const { t } = useTranslation();
   const [health, setHealth] = useState<CookieHealth | null>(null);
   const [pulse, setPulse] = useState(false);
 
@@ -41,7 +43,7 @@ export function BalancePill({ className }: { className?: string }) {
         pulse && "border-primary/60 bg-primary/10",
         className
       )}
-      title={`${health.ready} ready · ${health.depleted} depleted`}
+      title={`${health.ready} ${t("Ready")} · ${health.depleted} ${t("Depleted")}`}
     >
       <Wallet
         className={cn(
@@ -52,7 +54,7 @@ export function BalancePill({ className }: { className?: string }) {
       <span className="font-medium">
         {health.active_balance.toLocaleString()}
       </span>
-      <span className="text-[10px] text-muted-foreground">credits</span>
+      <span className="text-[10px] text-muted-foreground">{t("credits")}</span>
     </div>
   );
 }

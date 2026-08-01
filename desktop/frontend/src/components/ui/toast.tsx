@@ -1,6 +1,7 @@
 import { useEffect, useState, createContext, useContext, useCallback } from "react";
 import { CheckCircle2, AlertTriangle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 // Minimal toast system tailored for this app's feedback needs.
 // Future-proof: the API surface (showSuccess/showError) matches what
@@ -84,6 +85,7 @@ function ToastCard({
   item: ToastItem;
   onDismiss: () => void;
 }) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     // Trigger CSS transition on next tick.
@@ -110,7 +112,7 @@ function ToastCard({
       <button
         onClick={onDismiss}
         className="text-muted-foreground/60 hover:text-foreground"
-        aria-label="dismiss"
+        aria-label={t("dismiss")}
       >
         <X className="h-3.5 w-3.5" />
       </button>

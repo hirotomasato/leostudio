@@ -18,7 +18,7 @@ juggling API keys.
 
 | Region | Purpose |
 |---|---|
-| Sidebar (Workspace) | Generate Image, Generate Video, Library |
+| Sidebar (Workspace) | Generate Image, Generate Video, Queue, Library |
 | Sidebar (Manage) | Cookies (pool), Models (catalog + custom UUIDs) |
 | Sidebar (footer) | Settings, About |
 | Topbar | Page title, live credit pill (auto-refreshed after each generate), theme switcher |
@@ -134,6 +134,12 @@ GET  /health
 POST /v1/images/generations
 POST /v1/videos/generations
 ```
+
+## Interface language
+
+LeoStudio uses English by default. To use Simplified Chinese, open **Settings**
+from the sidebar, choose **简体中文** under **Language**, and the interface updates
+immediately. Your choice is saved locally and is restored at the next launch.
 
 ## Cookie setup
 

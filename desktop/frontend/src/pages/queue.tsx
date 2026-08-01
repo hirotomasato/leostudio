@@ -35,6 +35,7 @@ import {
   type QueueJobSpec,
 } from "@/lib/api";
 import { useWailsEvent } from "@/lib/events";
+import { useTranslation } from "@/lib/i18n";
 
 const VIDEO_ASPECTS = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"];
 
@@ -63,6 +64,7 @@ function uid(): string {
 
 export function QueuePage() {
   const { showError, showSuccess } = useToast();
+  const { t } = useTranslation();
   const [tab, setTab] = useState<SubTab>("image");
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [jobs, setJobs] = useState<QueueJob[]>([]);
@@ -72,9 +74,9 @@ export function QueuePage() {
     try {
       setJobs(await api.listQueueJobs());
     } catch (err) {
-      showError(`Gagal load queue: ${(err as Error).message}`);
+      showError(`${t("Loaded queue failed")}: ${(err as Error).message}`);
     }
-  }, [showError]);
+  }, [showError, t]);
 
   useEffect(() => {
     void reloadJobs();
@@ -112,7 +114,7 @@ export function QueuePage() {
     }));
     try {
       await api.enqueueJobs(specs);
-      showSuccess(`${specs.length} job ditambahkan ke antrian`);
+      showSuccess(t("Added {count} jobs to queue", { count: specs.length }));
       setDrafts([]);
       void reloadJobs();
     } catch (err) {
@@ -147,27 +149,28 @@ export function QueuePage() {
 }
 
 function SubTabs({ tab, onChange }: { tab: SubTab; onChange: (t: SubTab) => void }) {
+  const { t } = useTranslation();
   const tabs: Array<{ id: SubTab; label: string; icon: typeof ImageIcon }> = [
     { id: "image", label: "Image", icon: ImageIcon },
     { id: "video", label: "Video", icon: Video },
   ];
   return (
     <div className="flex items-center gap-1 rounded-md border border-border bg-card p-1">
-      {tabs.map((t) => {
-        const Icon = t.icon;
+      {tabs.map((item) => {
+        const Icon = item.icon;
         return (
           <button
-            key={t.id}
-            onClick={() => onChange(t.id)}
+            key={item.id}
+            onClick={() => onChange(item.id)}
             className={cn(
               "inline-flex flex-1 items-center justify-center gap-1.5 rounded px-3 py-1.5 text-sm transition",
-              tab === t.id
+              tab === item.id
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
             <Icon className="h-4 w-4" />
-            {t.label}
+            {t(item.label)}
           </button>
         );
       })}
@@ -179,6 +182,7 @@ function SubTabs({ tab, onChange }: { tab: SubTab; onChange: (t: SubTab) => void
 
 function ImageCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
   const { showError } = useToast();
+  const { t } = useTranslation();
   const [models, setModels] = useState<ImageModel[]>([]);
   const [aspects, setAspects] = useState<AspectRatioOption[]>([]);
   const [prompt, setPrompt] = useState("");
@@ -199,18 +203,18 @@ function ImageCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
         const def = m.find((x) => x.isDefault) ?? m[0];
         if (def) setModelId(def.modelId);
       } catch (err) {
-        showError(`Gagal load konfigurasi image: ${(err as Error).message}`);
+        showError(`${t("Loaded image configuration failed")}: ${(err as Error).message}`);
       }
     })();
-  }, [showError]);
+  }, [showError, t]);
 
   const add = () => {
     if (!prompt.trim()) {
-      showError("Prompt tidak boleh kosong.");
+      showError(t("Prompt cannot be empty."));
       return;
     }
     if (!modelId) {
-      showError("Pilih model dulu.");
+      showError(t("Select a model first."));
       return;
     }
     const label = models.find((m) => m.modelId === modelId)?.name ?? modelId;
@@ -237,22 +241,22 @@ function ImageCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
     <Card>
       <div className="flex items-center gap-2 p-5 pb-3">
         <ImageIcon className="h-4 w-4 text-primary" />
-        <CardTitle className="text-base">Compose image</CardTitle>
+        <CardTitle className="text-base">{t("Compose image")}</CardTitle>
       </div>
       <CardContent className="space-y-4 pt-0">
-        <Field label="Prompt">
+        <Field label={t("Prompt")}>
           <Textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="A cinematic shot of..."
+            placeholder={t("A cinematic shot of...")}
             className="min-h-[90px]"
             spellCheck={false}
           />
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Model">
+          <Field label={t("Model")}>
             <Select value={modelId} onChange={(e) => setModelId(e.target.value)}>
-              {models.length === 0 && <option value="">No model</option>}
+              {models.length === 0 && <option value="">{t("No model")}</option>}
               {models.map((m) => (
                 <option key={m.modelId} value={m.modelId}>
                   {m.name}
@@ -260,7 +264,7 @@ function ImageCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
               ))}
             </Select>
           </Field>
-          <Field label="Aspect ratio">
+          <Field label={t("Aspect ratio")}>
             <Select value={aspect} onChange={(e) => setAspect(e.target.value)}>
               {aspects.map((a) => (
                 <option key={a.label} value={a.label}>
@@ -270,7 +274,7 @@ function ImageCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
             </Select>
           </Field>
         </div>
-        <Field label={`Quantity · ${quantity}`}>
+        <Field label={t("Quantity · {count}", { count: quantity })}>
           <Slider value={quantity} onValueChange={setQuantity} min={1} max={4} step={1} />
         </Field>
         <ReferenceEditor refs={refs} onChange={setRefs} max={3} />
@@ -284,6 +288,7 @@ function ImageCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
 
 function VideoCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
   const { showError } = useToast();
+  const { t } = useTranslation();
   const [models, setModels] = useState<VideoModel[]>([]);
   const [prompt, setPrompt] = useState("");
   const [slug, setSlug] = useState("");
@@ -305,10 +310,10 @@ function VideoCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
           setDuration(list[0].defaultDuration);
         }
       } catch (err) {
-        showError(`Gagal load video models: ${(err as Error).message}`);
+        showError(`${t("Loaded video models failed")}: ${(err as Error).message}`);
       }
     })();
-  }, [showError]);
+  }, [showError, t]);
 
   const selected = useMemo(
     () => models.find((m) => m.slug === slug) ?? null,
@@ -320,11 +325,11 @@ function VideoCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
 
   const add = () => {
     if (!prompt.trim()) {
-      showError("Prompt tidak boleh kosong.");
+      showError(t("Prompt cannot be empty."));
       return;
     }
     if (!slug) {
-      showError("Pilih model dulu.");
+      showError(t("Select a model first."));
       return;
     }
     onAdd({
@@ -348,20 +353,20 @@ function VideoCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
     <Card>
       <div className="flex items-center gap-2 p-5 pb-3">
         <Video className="h-4 w-4 text-primary" />
-        <CardTitle className="text-base">Compose video</CardTitle>
+        <CardTitle className="text-base">{t("Compose video")}</CardTitle>
       </div>
       <CardContent className="space-y-4 pt-0">
-        <Field label="Prompt">
+        <Field label={t("Prompt")}>
           <Textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Cinematic footage of..."
+            placeholder={t("Cinematic footage of...")}
             className="min-h-[90px]"
             spellCheck={false}
           />
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Model">
+          <Field label={t("Model")}>
             <Select value={slug} onChange={(e) => setSlug(e.target.value)}>
               {models.map((m) => (
                 <option key={m.slug} value={m.slug}>
@@ -370,7 +375,7 @@ function VideoCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
               ))}
             </Select>
           </Field>
-          <Field label="Aspect ratio">
+          <Field label={t("Aspect ratio")}>
             <Select value={aspect} onChange={(e) => setAspect(e.target.value)}>
               {VIDEO_ASPECTS.map((a) => (
                 <option key={a} value={a}>
@@ -380,7 +385,7 @@ function VideoCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
             </Select>
           </Field>
         </div>
-        <Field label="Resolution">
+        <Field label={t("Resolution")}>
           <Select value={resolution} onChange={(e) => setResolution(e.target.value)}>
             {(selected?.supportedModes ?? []).map((m) => (
               <option key={m} value={m}>
@@ -389,7 +394,7 @@ function VideoCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
             ))}
           </Select>
         </Field>
-        <Field label={`Duration · ${duration}s`}>
+        <Field label={t("Duration · {duration}s", { duration })}>
           <Slider
             value={duration}
             onValueChange={(v) => {
@@ -407,14 +412,14 @@ function VideoCompose({ onAdd }: { onAdd: (d: Draft) => void }) {
         </Field>
         {selected?.supportsAudio && (
           <div className="flex items-center justify-between rounded-md border border-border bg-card px-3 py-2">
-            <span className="text-sm">Native audio</span>
+            <span className="text-sm">{t("Native audio")}</span>
             <Switch checked={audio} onCheckedChange={setAudio} />
           </div>
         )}
         {selected?.supportsRefImage && (
           <div className="space-y-1.5">
             <p className="text-xs font-medium text-muted-foreground">
-              Start frame <span className="text-[10px]">(optional)</span>
+              {t("Start frame")} <span className="text-[10px]">({t("optional")})</span>
             </p>
             <ImageDropzone value={startFrame} onChange={setStartFrame} />
           </div>
@@ -442,10 +447,11 @@ function ReferenceEditor({
   onChange: (next: DroppedImage[]) => void;
   max: number;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-2">
       <p className="text-xs font-medium text-muted-foreground">
-        Reference <span className="text-[10px]">({refs.length}/{max})</span>
+        {t("Reference · {current}/{max}", { current: refs.length, max })}
       </p>
       <div className="space-y-2">
         {refs.map((r, i) => (
@@ -477,10 +483,11 @@ function ReferenceEditor({
 }
 
 function AddButton({ onClick }: { onClick: () => void }) {
+  const { t } = useTranslation();
   return (
     <Button className="w-full" variant="outline" onClick={onClick}>
       <Plus className="h-4 w-4" />
-      Add to queue
+      {t("Add to queue")}
     </Button>
   );
 }
@@ -507,24 +514,25 @@ function DraftList({
   onDuplicate: (id: string) => void;
   onSubmit: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Card>
       <div className="flex items-center justify-between p-5 pb-3">
         <CardTitle className="text-base">
-          Drafts
+          {t("Drafts")}
           <span className="ml-2 text-xs font-normal text-muted-foreground">
             {drafts.length}
           </span>
         </CardTitle>
         <Button size="sm" onClick={onSubmit} disabled={drafts.length === 0}>
           <Send className="h-4 w-4" />
-          Submit ({drafts.length})
+          {t("Submit ({count})", { count: drafts.length })}
         </Button>
       </div>
       <CardContent className="pt-0">
         {drafts.length === 0 ? (
           <p className="py-6 text-center text-xs text-muted-foreground">
-            Belum ada draft. Susun request lalu klik "Add to queue".
+            {t("No drafts yet. Compose a request, then click \"Add to queue\".")}
           </p>
         ) : (
           <div className="space-y-2">
@@ -534,7 +542,7 @@ function DraftList({
                 className="flex items-start gap-3 rounded-md border border-border bg-background/40 p-3"
               >
                 <Badge tone={d.type === "video" ? "info" : "neutral"}>
-                  {d.type}
+                  {t(d.type)}
                 </Badge>
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-2 text-xs">{d.prompt}</p>
@@ -542,8 +550,8 @@ function DraftList({
                     {shorten(d.modelLabel)} · {d.aspectRatio}
                     {d.type === "image"
                       ? ` · x${d.quantity}`
-                      : ` · ${resolutionLabel(d.resolution)} · ${d.duration}s${d.audio ? " · audio" : ""}`}
-                    {d.refs.length > 0 ? ` · ${d.refs.length} ref` : ""}
+                      : ` · ${resolutionLabel(d.resolution)} · ${d.duration}s${d.audio ? ` · ${t("audio")}` : ""}`}
+                    {d.refs.length > 0 ? ` · ${d.refs.length} ${t("ref")}` : ""}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
@@ -551,7 +559,7 @@ function DraftList({
                     variant="ghost"
                     size="icon"
                     onClick={() => onDuplicate(d.localId)}
-                    aria-label="Duplicate draft"
+                    aria-label={t("Duplicate draft")}
                   >
                     <Copy className="h-3.5 w-3.5" />
                   </Button>
@@ -559,7 +567,7 @@ function DraftList({
                     variant="ghost"
                     size="icon"
                     onClick={() => onRemove(d.localId)}
-                    aria-label="Remove draft"
+                    aria-label={t("Remove draft")}
                   >
                     <Trash2 className="h-3.5 w-3.5 text-red-300" />
                   </Button>
@@ -585,6 +593,7 @@ function QueueList({
   onChanged: () => void;
 }) {
   const { showError } = useToast();
+  const { t } = useTranslation();
   const counts = useMemo(() => {
     const c = { pending: 0, running: 0, completed: 0, failed: 0, canceled: 0 };
     for (const j of jobs) c[j.status]++;
@@ -606,11 +615,11 @@ function QueueList({
     <Card className="flex min-h-0 flex-col lg:max-h-full">
       <div className="flex items-center justify-between border-b border-border/60 p-5 pb-3">
         <div>
-          <CardTitle className="text-base">Queue</CardTitle>
+          <CardTitle className="text-base">{t("Queue")}</CardTitle>
           <CardDescription>
             {jobs.length === 0
-              ? "Job yang di-submit tampil di sini."
-              : `${counts.running} running · ${counts.pending} pending · ${counts.completed} done · ${counts.failed} failed`}
+              ? t("Submitted jobs appear here.")
+              : t("{running} running · {pending} pending · {completed} done · {failed} failed", counts)}
           </CardDescription>
         </div>
         <Button
@@ -620,7 +629,7 @@ function QueueList({
           disabled={!hasFinished}
         >
           <Eraser className="h-4 w-4" />
-          Clear finished
+          {t("Clear finished")}
         </Button>
       </div>
       <CardContent className="flex-1 overflow-y-auto p-5 pt-4">
@@ -648,6 +657,7 @@ function JobRow({
   onChanged: () => void;
 }) {
   const { showError } = useToast();
+  const { t } = useTranslation();
   const thumb = job.thumbUrls[0] ?? (job.type === "image" ? job.resultUrls[0] : undefined);
 
   const act = async (fn: () => Promise<void>) => {
@@ -666,7 +676,7 @@ function JobRow({
           <button
             type="button"
             onClick={() => onPreview(job.resultUrls[0] ?? thumb)}
-            aria-label="Preview result"
+            aria-label={t("Preview result")}
           >
             <img src={thumb} alt="" className="h-16 w-16 object-cover" />
           </button>
@@ -676,7 +686,7 @@ function JobRow({
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge tone={job.type === "video" ? "info" : "neutral"}>{job.type}</Badge>
+          <Badge tone={job.type === "video" ? "info" : "neutral"}>{t(job.type)}</Badge>
           <StatusBadge status={job.status} />
         </div>
         <p className="mt-1 line-clamp-2 text-xs">{job.prompt}</p>
@@ -690,7 +700,7 @@ function JobRow({
             variant="ghost"
             size="icon"
             onClick={() => act(() => api.cancelQueueJob(job.id))}
-            aria-label="Cancel job"
+            aria-label={t("Cancel job")}
           >
             <Ban className="h-3.5 w-3.5" />
           </Button>
@@ -700,7 +710,7 @@ function JobRow({
             variant="ghost"
             size="icon"
             onClick={() => act(() => api.retryQueueJob(job.id))}
-            aria-label="Retry job"
+            aria-label={t("Retry job")}
           >
             <RotateCcw className="h-3.5 w-3.5" />
           </Button>
@@ -726,30 +736,31 @@ function StatusIcon({ status }: { status: QueueJob["status"] }) {
 }
 
 function StatusBadge({ status }: { status: QueueJob["status"] }) {
+  const { t } = useTranslation();
   switch (status) {
     case "running":
-      return <Badge tone="info">running</Badge>;
+      return <Badge tone="info">{t("running")}</Badge>;
     case "completed":
-      return <Badge tone="success">completed</Badge>;
+      return <Badge tone="success">{t("completed")}</Badge>;
     case "failed":
-      return <Badge tone="danger">failed</Badge>;
+      return <Badge tone="danger">{t("failed")}</Badge>;
     case "canceled":
-      return <Badge tone="warning">canceled</Badge>;
+      return <Badge tone="warning">{t("canceled")}</Badge>;
     default:
-      return <Badge tone="neutral">pending</Badge>;
+      return <Badge tone="neutral">{t("pending")}</Badge>;
   }
 }
 
 function EmptyQueue() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-accent-foreground">
         <ListChecks className="h-5 w-5" />
       </div>
-      <p className="text-sm font-medium">Antrian kosong</p>
+      <p className="text-sm font-medium">{t("Queue is empty")}</p>
       <p className="max-w-xs text-xs text-muted-foreground">
-        Susun beberapa request di kiri, lalu Submit untuk menjalankannya di latar
-        belakang.
+        {t("Compose requests on the left, then submit them to run in the background.")}
       </p>
     </div>
   );

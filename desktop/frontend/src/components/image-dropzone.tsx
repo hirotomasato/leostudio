@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 import { api } from "@/lib/api";
 
 // One reference / start frame slot. Holds either a pre-uploaded init image id
@@ -51,6 +52,7 @@ export function ImageDropzone({
   hint?: string;
 }) {
   const { showError } = useToast();
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -63,7 +65,7 @@ export function ImageDropzone({
     async (file: File) => {
       const ext = extractExt(file.name);
       if (!ACCEPTED_EXTS.includes(ext)) {
-        showError(`File harus jpg/png/webp (got ${ext}).`);
+        showError(t("File must be jpg/png/webp (got {ext}).", { ext }));
         return;
       }
       console.log("[dropzone] uploading:", {
@@ -86,18 +88,18 @@ export function ImageDropzone({
         });
       } catch (err) {
         console.error("[dropzone] upload failed", err);
-        showError(`Upload gagal: ${(err as Error).message}`);
+        showError(`${t("Upload failed")}: ${(err as Error).message}`);
       } finally {
         setUploading(false);
       }
     },
-    [onChange, showError]
+    [onChange, showError, t]
   );
 
   const onSubmitURL = () => {
     const u = urlInput.trim();
     if (!u) {
-      showError("URL kosong.");
+      showError(t("URL cannot be empty."));
       return;
     }
     onChange({ source: "url", url: u, previewURL: u });
@@ -112,24 +114,24 @@ export function ImageDropzone({
       <div className="flex items-center gap-3 rounded-md border border-border bg-card p-2">
         <img
           src={value.previewURL}
-          alt="reference"
+          alt={t("Reference image")}
           className="h-16 w-16 rounded object-cover"
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-medium">
-            {value.filename ?? value.url ?? "Reference image"}
+            {value.filename ?? value.url ?? t("Reference image")}
           </p>
           <p className="text-[10px] text-muted-foreground">
             {value.source === "uploaded"
-              ? `Uploaded · id ${value.imageId?.slice(0, 8)}…`
-              : "Remote URL"}
+              ? `${t("Uploaded")} · id ${value.imageId?.slice(0, 8)}…`
+              : t("Remote URL")}
           </p>
         </div>
         <Button
           variant="ghost"
           size="icon"
           onClick={() => onChange(null)}
-          aria-label="Remove reference"
+          aria-label={t("Remove reference")}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -153,7 +155,7 @@ export function ImageDropzone({
             }}
           />
           <Button size="sm" onClick={onSubmitURL} disabled={!urlInput.trim()}>
-            Use
+            {t("Use")}
           </Button>
           <Button
             size="sm"
@@ -163,7 +165,7 @@ export function ImageDropzone({
               setUrlInput("");
             }}
           >
-            Cancel
+            {t("Cancel")}
           </Button>
         </div>
         {hint ? (
@@ -200,10 +202,10 @@ export function ImageDropzone({
         )}
       </div>
       <p className="text-xs font-medium">
-        {uploading ? "Uploading…" : "Drag image here"}
+        {uploading ? t("Uploading…") : t("Drag image here")}
       </p>
       <p className="text-[10px] text-muted-foreground">
-        jpg / png / webp, max 1 file
+        {t("jpg / png / webp, max 1 file")}
       </p>
       <div className="flex items-center gap-2 pt-1">
         <Button
@@ -214,7 +216,7 @@ export function ImageDropzone({
           disabled={uploading}
         >
           <Upload className="h-3.5 w-3.5" />
-          Choose file
+          {t("Choose file")}
         </Button>
         <Button
           type="button"
@@ -224,7 +226,7 @@ export function ImageDropzone({
           disabled={uploading}
         >
           <LinkIcon className="h-3.5 w-3.5" />
-          Paste URL
+          {t("Paste URL")}
         </Button>
       </div>
       <input
